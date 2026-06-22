@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Etch-A-Sketch Pad</title>
+    <style>
+        /* 1. Base Setup and Layout Center alignment */
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        /* Styling for our controller action button */
+        #resizeBtn {
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: background 0.2s;
+        }
+
+        #resizeBtn:hover {
+            background-color: #2980b9;
+        }
+
+        /* 2. The Main Fixed Size Canvas Container */
+        #grid-container {
+            display: flex;
+            flex-wrap: wrap;
+            /* Essential Flexbox rule to force wrapping */
+            width: 600px;
+            /* Locked total width framework space */
+            height: 600px;
+            /* Locked total height framework space */
+            background-color: #fff;
+            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.15);
+            border: 4px solid #2c3e50;
+        }
+
+        /* 3. Base styles for our generated inner tiles */
+        .grid-square {
+            box-sizing: border-box;
+            /* Crucial: includes borders inside calculated sizing widths */
+            border: 1px solid #f1f1f1;
+            background-color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Etch-A-Sketch</h1>
+    <button id="resizeBtn">Reset & Change Grid Size</button>
+
+    <!-- This is the container requested by the instructions -->
+    <div id="grid-container"></div>
+
+    <script>
+        const container = document.querySelector('#grid-container');
+        const resizeBtn = document.querySelector('#resizeBtn');
+
+        // Function responsible for drawing the layout
+        function createGrid(squaresPerSide) {
+            // Clear out any old squares remaining inside the board container
+            container.innerHTML = '';
+
+            // Calculate the exact size of one square to perfectly fit the container boundaries
+            // Container size is 600px, so 600 / squaresPerSide gives us the exact pixel width/height needed
+            const totalWidth = 600;
+            const squareSize = totalWidth / squaresPerSide;
+            const totalSquares = squaresPerSide * squaresPerSide;
+
+            for (let i = 0; i < totalSquares; i++) {
+                const square = document.createElement('div');
+                square.classList.add('grid-square');
+
+                // Dynamically assign sizes based on current setup matrix
+                square.style.width = `${squareSize}px`;
+                square.style.height = `${squareSize}px`;
+
+                // EXTRA CREDIT: Track custom opacity levels for gradual darkening setup
+                // We set an initial custom property tracking state to 0 (0% dark / completely transparent overlay)
+                square.dataset.opacityLevel = 0;
+
+                // Set up the persistent hover track logic marker
+                square.addEventListener('mouseenter', () => {
+                    // Check if it's the first time the mouse hits this square
+                    if (square.dataset.opacityLevel === "0") {
+                        // Extra Credit 1: Generate random RGB values
+                        const r = Math.floor(Math.random() * 256);
+                        const g = Math.floor(Math.random() * 256);
+                        const b = Math.floor(Math.random() * 256);
+                        square.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+                    }
+
+                    // Extra Credit 2: Progressive Darkening (10% increments)
+                    // Convert string to integer, add 1 step up, save back to element data
+                    let currentLevel = parseInt(square.dataset.opacityLevel);
+                    if (currentLevel < 10) {
+                        currentLevel++;
+                        square.dataset.opacityLevel = currentLevel;
+
+                        // We achieve a darkening effect by layering a black brightness filter
+                        // At level 10, brightness is 0% (pitch black).
+                        let brightnessValue = 100 - (currentLevel * 10);
+                        square.style.filter = `brightness(${brightnessValue}%)`;
+                    }
+                });
+
+                container.appendChild(square);
+            }
+        }
+
+        // Button interface prompt setup logic
+        resizeBtn.addEventListener('click', () => {
+            let userInput = prompt("Enter number of squares per side (Maximum 100):");
+
+            // Handle if the user presses cancel on the prompt window popup
+            if (userInput === null) return;
+
+            // Convert string into a readable system integer number
+            let newSize = parseInt(userInput);
+
+            // Validation checks to secure system limits and safety
+            if (isNaN(newSize) || newSize < 1 || newSize > 100) {
+                alert("Please enter a valid whole number between 1 and 100!");
+            } else {
+                // Re-render drawing canvas cleanly with user specified parameters
+                createGrid(newSize);
+            }
+        });
+
+        // Initialize the app with a default base 16x16 grid on first website load
+        createGrid(16);
+    </script>
+</body>
+
+</html>
